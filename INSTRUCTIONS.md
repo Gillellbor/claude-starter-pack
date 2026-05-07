@@ -2,11 +2,13 @@
 
 You are reading this because the user just cloned the Claude Code Starter Pack and ran `claude` in the repo root. Your job is to walk them through installation safely, with explicit confirmation at each major step.
 
-**Do not silently run install commands.** Show what you're about to do, get user approval, then execute. The user is reviewing each step.
+**Do not silently run install commands.** Show what you're about to do, get user approval, then execute. The user is reviewing each step. If they say "skip this", skip it and note what was skipped.
+
+**Style for this install session:** terse. The user can read; don't narrate. Show the command before running it. After running, report the result in one line.
 
 ## Step 0 — Greet and confirm intent
 
-Acknowledge what's about to happen. Ask: "Are you ready to install the Claude Code Starter Pack? This will modify `~/.claude/` and create directories in `~/Documents/`. I'll confirm each step before doing anything."
+Acknowledge what's about to happen. Ask: "Ready to install the Claude Code Starter Pack? This will modify `~/.claude/` and create directories in your home folder. I'll confirm each step before doing anything."
 
 Wait for explicit yes.
 
@@ -14,10 +16,16 @@ Wait for explicit yes.
 
 Run these checks and report results in a single message:
 
-1. **OS detection** — `uname -s` (expect Darwin or Linux; Windows users should run via WSL).
-2. **Required binaries** — verify `python3`, `node`, `git` are installed and on PATH. Report versions.
+1. **OS detection** — `uname -s`:
+   - **Darwin** → macOS, all instructions apply as written
+   - **Linux** → adjust paths if user uses non-standard `~/Documents/` location; otherwise same as macOS
+   - **MINGW / MSYS / CYGWIN** or PowerShell → **Windows.** Stop and tell the user:
+     > "This starter pack assumes a Unix-like shell. On Windows, the cleanest path is **WSL2** (Windows Subsystem for Linux) — install Ubuntu via Microsoft Store, run Claude Code inside WSL, and use this pack as on Linux. Native Windows is possible but requires manual path adjustments throughout (`%USERPROFILE%` vs `$HOME`, backslash vs forward slash, no symlinks without admin) — not recommended for first install. Do you want to continue with WSL setup or quit and install WSL first?"
+2. **Required binaries** — verify `python3`, `node`, `git`, `jq`, `curl` are installed and on PATH. Report versions.
+   - On macOS: `brew install jq` if missing.
+   - On Linux: `apt install jq` or distro-equivalent.
 3. **Existing `~/.claude/`** — `ls -la ~/.claude/ 2>/dev/null | wc -l`. Report whether it exists and how many entries.
-4. **Existing workspace dirs** — check if `~/Documents/_CONTEXT`, `~/Documents/_CLIENTS`, `~/Documents/_BUSINESS`, `~/Documents/_APPS` exist.
+4. **Existing workspace dirs** — by default, the pack uses `~/Documents/_CONTEXT`, `~/Documents/_CLIENTS`, `~/Documents/_BUSINESS`, `~/Documents/_APPS`. Check if any exist. (Workspace location is user-customizable in Step 4.)
 
 If any required binary is missing, stop and tell the user how to install it. Do not proceed.
 
@@ -29,9 +37,7 @@ If `~/.claude/` exists, propose:
 cp -r ~/.claude ~/.claude.bak-$(date +%Y%m%d-%H%M%S)
 ```
 
-Get user approval. After backup, report the backup path.
-
-If `~/.claude/` does not exist, skip this step and tell the user.
+Get user approval. After backup, report the backup path. If `~/.claude/` does not exist, skip this step and tell the user.
 
 ## Step 3 — Install kernel
 
@@ -42,13 +48,13 @@ kernel/ → ~/.claude/
 ```
 
 Files going in:
-- `settings.json` (restrictive baseline)
+- `settings.json` (restrictive baseline; bypass mode locked off)
 - `AGENTS.md` + `CLAUDE.md` (symlink)
 - `rules/` (four rules)
 - `scripts/list-env-keys.sh`
-- `hooks/bash-safety-extended.py` + `hooks/notes-research.sh` + `hooks/inbox-processor.sh`
+- `hooks/bash-safety-extended.py` + `hooks/notes-research.sh` + `hooks/inbox-processor.sh` + `hooks/inject-current-time.sh`
 - `skills/setup/`, `skills/skill-creator/`, `skills/prd-creator/`, `skills/dr-prompt/`
-- `templates/` (four scaffolding templates)
+- `templates/` (five scaffolding templates: klient, dev, business, app, general)
 - `agents/` (empty placeholder + README)
 
 Critical: if `~/.claude/settings.json` already exists in the backup, ask the user whether to replace it or merge. The default is **replace** (the backup preserves their old version). If they want to merge, tell them they'll need to do it manually via editor — the install does not auto-merge JSON.
@@ -63,19 +69,95 @@ After copy: re-create the `~/.claude/CLAUDE.md` symlink (it may not have copied 
 cd ~/.claude && ln -sfn AGENTS.md CLAUDE.md
 ```
 
-## Step 4 — Install workspace
+## Step 4 — Customization wizard (interactive)
 
-Ask the user where to place the workspace. Default: `~/Documents/`.
+Don't just dump files into `~/Documents/` and walk away. Ask the user how they want it set up. Run this as a short interview — three blocks, ~7 questions total. Take answers, confirm in a recap, then execute.
 
-Copy the four top-level directories: `_CONTEXT/`, `_CLIENTS/`, `_BUSINESS/`, `_APPS/`. **Never overwrite an existing top-level directory** — if `_CONTEXT` already exists, skip it and tell the user (they'll merge manually if they want).
+### Block A — Workspace location and naming
 
-Re-create the symlinks for `AGENTS.md` ↔ `CLAUDE.md` in each project subfolder that has them. Symlinks may not survive a `cp` cleanly; re-establish with `ln -sfn AGENTS.md CLAUDE.md` in each project root.
+```
+The starter pack's workspace structure consists of four top-level directories:
+  _CONTEXT/    — your personal profile, notes, best-practices
+  _CLIENTS/    — per-client engagement folders
+  _BUSINESS/   — your own business work (projects, education, internal docs)
+  _APPS/       — small tools and apps you build
+
+Question 1: where should these directories live?
+  Default: ~/Documents/
+  Type a different path or press Enter for default.
+
+Question 2: do you want to rename any of the directories?
+  Defaults shown above. You can use any names that fit your work.
+  Some users prefer English plain names (clients/, business/, apps/).
+  Some prefer keeping the underscore prefix (_CLIENTS/) for visual sorting.
+  Type space-separated overrides or press Enter to keep defaults.
+  Format: <context-dir> <clients-dir> <business-dir> <apps-dir>
+  Example: context clients business apps
+```
+
+Apply user's answers. Use the chosen base path + chosen names throughout the rest of the install.
+
+### Block B — Personal profile (one round of questions)
+
+```
+The user-profile file (in {context-dir}/user-profile.md) is read by Claude
+across all sessions. The more accurate it is, the more tailored the work.
+
+Quick interview — answer in 1–2 sentences each, or "skip" to leave blank:
+
+Question 3: Your role and primary work focus?
+  (e.g. "Solo consultant doing AI strategy for SMEs" or "Backend dev at a fintech")
+
+Question 4: What tech stack and AI tools do you use most?
+  (e.g. "Python + Postgres, Claude Code daily, sometimes Cursor")
+
+Question 5: Communication style preference?
+  Pick one: terse / balanced / detailed.
+  Direct push-back when you have a flawed plan? yes / no.
+
+Question 6: Output language for your own work?
+  (e.g. "Czech for personal/client docs, English for code and system files")
+```
+
+Write the answers into `{context-dir}/user-profile.md`, replacing the empty placeholders in the template.
+
+### Block C — Example content
+
+```
+Question 7: The pack ships with example directories you can keep, rename, or delete:
+  - _CLIENTS/_example-client/  (sample client structure)
+  - _APPS/_example-app-transcribe/  (stub app demonstrating _APPS layout)
+
+  Options:
+  (a) Rename _example-client to a real client name (give me the name)
+  (b) Delete both examples (you'll create your own)
+  (c) Keep both as references (default)
+```
+
+Apply the choice.
+
+### Workspace copy
+
+Now copy the workspace directories using the user's chosen paths and names:
+
+```bash
+mkdir -p {base-path}
+# For each chosen directory name, cp from workspace/{default-name}/ to {base-path}/{chosen-name}/
+```
+
+**Never overwrite an existing top-level directory** — if `_CONTEXT` (or whatever the user named it) already exists, skip it and tell the user (they'll merge manually if they want).
+
+After copy, re-create the symlinks for `AGENTS.md` ↔ `CLAUDE.md` in each project subfolder. Symlinks may not survive a `cp` cleanly:
+```bash
+# In each subdirectory that should have AGENTS.md + CLAUDE.md symlink:
+cd {dir} && ln -sfn AGENTS.md CLAUDE.md
+```
 
 ## Step 5 — Set up the credential store (`~/.claude/.env`)
 
-The starter pack uses `~/.claude/.env` as a central place for API keys and other credentials. The notes-research and inbox-processor hooks read `ANTHROPIC_API_KEY` from this file.
+The starter pack uses `~/.claude/.env` as the central place for API keys. The notes-research and inbox-processor hooks read `ANTHROPIC_API_KEY` from this file.
 
-Check if `~/.claude/.env` already exists. If not, create it with a starter template:
+If `~/.claude/.env` doesn't exist, create it with a starter template:
 
 ```bash
 cat > ~/.claude/.env <<'EOF'
@@ -85,7 +167,7 @@ cat > ~/.claude/.env <<'EOF'
 # Required for notes-research and inbox-processor hooks (cost: tokens per trigger)
 ANTHROPIC_API_KEY=
 
-# Optional — override the default research model
+# Optional — override the default research model (defaults to Haiku for cost)
 # ANTHROPIC_MODEL=claude-haiku-4-5-20251001
 
 # Add other API keys as you need them. Examples:
@@ -96,42 +178,52 @@ EOF
 chmod 600 ~/.claude/.env
 ```
 
-Tell the user:
-- The file is at `~/.claude/.env`
-- It's denied from being read by any tool except hooks (which run outside the permission engine)
-- Without `ANTHROPIC_API_KEY`, the notes-research and inbox-processor hooks silently no-op — that's a feature, not a bug
-- Use `~/.claude/scripts/list-env-keys.sh` to verify Claude can see the variable *names* (never values)
+Ask the user to add their `ANTHROPIC_API_KEY` value (or skip — auto-research workflow will be inert until they add it). Without the key, the hooks silently no-op — that's a feature, not a bug.
 
-Wait for the user to say they've added their API key (or skipped). If they skip, mention that the auto-research workflow will be inert until the key is added.
+Show how the env-keys helper works:
+```bash
+~/.claude/scripts/list-env-keys.sh
+```
 
-## Step 6 — Personalize
+Their `ANTHROPIC_API_KEY` (and any other credentials they added) should appear by name. Values never appear.
 
-1. Open `~/Documents/_CONTEXT/user-profile.md` and ask the user to fill in:
-   - Their name, role, primary work focus
-   - Their tech stack and main tools
-   - Communication style preferences (terse vs. detailed, formal vs. casual)
-
-2. Ask if they want to rename `_CLIENTS/_example-client/` to a real client name. If yes, do the rename and update any internal references.
-
-3. Show them how the env-keys helper works:
-   ```bash
-   ~/.claude/scripts/list-env-keys.sh
-   ```
-   Their `ANTHROPIC_API_KEY` (and any other credentials they added) should appear by name. Values never appear.
-
-## Step 7 — Verification
+## Step 6 — Verification
 
 Tell the user to **restart their Claude Code session** so the new `settings.json` takes effect. After restart, they can verify:
 
-- `python3 ~/.claude/scripts/list-env-keys.sh` returns env var names without values
+- `~/.claude/scripts/list-env-keys.sh` returns env var names without values
 - A denied command (e.g. asking Claude to `cat .env`) gets blocked
-- Bypass mode is off (`claude --permission-mode bypassPermissions` should refuse)
+- Bypass mode is off — `claude --permission-mode bypassPermissions` should refuse
+- The current-time injection works — at session start, Claude should know the actual time (test by asking "what time is it?")
+
+## Step 7 — Lock settings.json (final step before hand-off)
+
+During this install session, the starter pack's `settings.json` allowed Claude to freely edit `~/.claude/settings.json` (no specific deny or ask rule on it; the broad `Edit(*)` / `Write(*)` allows applied). This was deliberate — install may need to fine-tune things.
+
+**At the end of installation, lock it down.** Add Edit/Write on `~/.claude/settings*` to the `ask` list, so future sessions prompt the user before any change to the kernel config:
+
+```bash
+python3 -c "
+import json
+from pathlib import Path
+p = Path.home() / '.claude' / 'settings.json'
+s = json.load(open(p))
+ask = s.setdefault('permissions', {}).setdefault('ask', [])
+for rule in ['Edit(~/.claude/settings*)', 'Write(~/.claude/settings*)']:
+    if rule not in ask:
+        ask.append(rule)
+json.dump(s, open(p, 'w'), indent=2)
+print('settings.json locked: future edits to ~/.claude/settings* require user approval')
+"
+```
+
+After this step, Claude can still modify settings.json — but each modification requires the user to confirm at the prompt. This prevents silent drift while preserving flexibility.
 
 ## Step 8 — Hand off
 
 Tell the user:
 
-> Setup is done. Read `~/Downloads/claude-starter-pack/docs/customization.md` when you want to extend the system. Read `docs/safety-model.md` to understand what the safety boundaries are and aren't. The repo can be deleted now — everything is installed in `~/.claude/` and `~/Documents/`.
+> Setup is done. Read `docs/customization.md` when you want to extend the system. Read `docs/safety-model.md` to understand what the safety boundaries are and aren't. Read `docs/prompting-claude.md` for tips on getting better Claude output. The starter pack repo can be deleted now — everything is installed in `~/.claude/` and your chosen workspace directories.
 
 End the install session here. Do not proceed to other tasks unless the user asks.
 
@@ -142,8 +234,15 @@ End the install session here. Do not proceed to other tasks unless the user asks
 - Never run `rm -rf` during install. Use `mv` to a backup path instead.
 - Never use `sudo`. If something requires sudo, instruct the user to run it manually.
 
-## Style for this install session
+## Windows-specific addendum
 
-- Terse. The user can read; don't narrate.
-- Show the command before running it. After running, report the result in one line.
-- If the user says "skip this", skip it and note what was skipped.
+If the user is on Windows and chose to continue without WSL (against the recommendation):
+
+- Replace `~/.claude/` with `%USERPROFILE%\.claude\` (or `$env:USERPROFILE\.claude\` in PowerShell)
+- Replace `~/Documents/` similarly
+- Symlinks won't work without admin rights — instead of `ln -s AGENTS.md CLAUDE.md`, create a hard link or just copy the file (acknowledge that this means two files to keep in sync)
+- `chmod +x` is a no-op on Windows; PowerShell scripts must be unblocked via `Unblock-File` instead
+- Bash hooks (`*.sh`) won't run natively — they require Git Bash, WSL, or rewrite to `.ps1`
+- `~/.claude/.env` works the same way; PowerShell env loading differs (`$env:KEY = (Get-Content .env | ...)`)
+
+Strongly recommend WSL2. The starter pack assumes Unix conventions throughout — fighting Windows native is more work than installing WSL.

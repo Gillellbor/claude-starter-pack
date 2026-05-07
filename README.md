@@ -9,7 +9,10 @@ A curated baseline configuration for Claude Code: hard safety defaults, opiniona
 ### Kernel (`~/.claude/`)
 - **Restrictive `settings.json`** — destructive bash patterns, sensitive file reads, and `--no-verify` style escapes are denied at the global level. Bypass mode is locked off.
 - **Safety hook** — catches two-step download-execute, subshell bypasses, and other patterns that simple deny rules miss.
-- **Three baseline rules** — documentation standard, respect-denies behavior, subagent usage guide.
+- **Auto-research hook** — detects unmarked notes in `notes.md` files, dispatches background research via the Anthropic API, marks each as ✅ (research done) or ⏭️ (skipped).
+- **Inbox-processor hook** — extracts knowledge from documents dropped in `docs/inbox/` to a knowledge-base drafts area.
+- **Time-injection hook** — adds the current local time to Claude's context every prompt (so timestamps in notes are accurate).
+- **Four baseline rules** — documentation standard, respect-denies behavior, subagent usage guide, notes convention.
 - **Four bundled skills** — `setup` (project scaffolding), `skill-creator`, `prd-creator`, `dr-prompt`.
 - **Helper script** — `list-env-keys.sh` lets Claude see *names* of your credential env vars without ever touching values.
 

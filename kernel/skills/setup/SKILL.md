@@ -23,11 +23,12 @@ Present these options to the user:
 ```
 Project setup for: {CWD basename}
 
-1. Klient (_KLIENTI/)  — client engagement
-2. Dev (_DEV/)         — development project
-3. App (_APPS/)        — own product/tool
-4. General (_PROJECTS/) — community, initiative, experiment
-5. Just clean up       — keep existing AGENTS.md/CLAUDE.md, add references
+1. Klient   — per-client engagement (typically lives in _CLIENTS/{name}/)
+2. Business — your own business work (typically lives in _BUSINESS/projects/{name}/)
+3. App      — tool/app you build for reuse (typically lives in _APPS/{name}/)
+4. Dev      — generic development project (any location)
+5. General  — community, initiative, research, experiment (any location)
+6. Just clean up — keep existing AGENTS.md/CLAUDE.md, add missing references
 ```
 
 Wait for the user's choice. Do NOT proceed without it.
@@ -37,8 +38,9 @@ Wait for the user's choice. Do NOT proceed without it.
 Based on choice, ask the user for template placeholders. Use directory name as default project name. Ask only what's needed — skip optional fields unless the user wants to fill them.
 
 **Klient:** CLIENT_NAME, INDUSTRY, ENGAGEMENT_TYPE, ONE_LINE_DESCRIPTION
-**Dev:** PROJECT_NAME, TECH_STACK, ONE_LINE_DESCRIPTION
+**Business:** BUSINESS_CONTEXT (e.g. "consulting offering rebuild", "course development", "internal automation")
 **App:** APP_NAME, TECH_STACK, ONE_LINE_DESCRIPTION, exposure type (skill/plugin/API/standalone)
+**Dev:** PROJECT_NAME, TECH_STACK, ONE_LINE_DESCRIPTION
 **General:** PROJECT_NAME, type (community/initiative/research/experiment), ONE_LINE_DESCRIPTION
 **Clean up:** No questions — just scan and update.
 
@@ -46,8 +48,9 @@ Based on choice, ask the user for template placeholders. Use directory name as d
 
 - Read template from `~/.claude/templates/{type}-claude.md`:
   - Klient → `klient-claude.md`
-  - Dev → `dev-claude.md`
+  - Business → `business-claude.md`
   - App → `app-claude.md`
+  - Dev → `dev-claude.md`
   - General → `general-claude.md`
 - Fill in placeholders with user's answers.
 - Write the filled content to `AGENTS.md` (NOT CLAUDE.md — AGENTS.md is canonical).
@@ -104,6 +107,13 @@ Create only what doesn't already exist. Never overwrite existing files.
   - `docs.md` (skeleton: `# Documents\n\n| Date | Name | Google Drive URL |\n|------|------|------------------|\n`)
   - `meetings.md` (skeleton: `# Meetings\n\n| Date | Topic | Key Points |\n|------|-------|------------|\n`)
   - `worklog.md` (skeleton: `# Worklog\n\n| Timestamp | Type | Project | Description | Files |\n|-----------|------|---------|-------------|-------|\n`)
+
+**Business:**
+- `projects/`
+- `education/`
+- `research/`
+- `docs/`
+- `scripts/`
 
 **Dev:**
 - `docs/features/`

@@ -102,8 +102,6 @@
       "Bash(shutdown*)",
       "Bash(reboot*)",
       "Bash(halt*)",
-      "Edit(~/.claude/settings*)",
-      "Write(~/.claude/settings*)",
       "Edit(~/.bashrc)",
       "Write(~/.bashrc)",
       "Edit(~/.zshrc)",
@@ -184,6 +182,16 @@
             "type": "command",
             "command": "~/.claude/hooks/inbox-processor.sh",
             "async": true
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/inject-current-time.sh"
           }
         ]
       }
