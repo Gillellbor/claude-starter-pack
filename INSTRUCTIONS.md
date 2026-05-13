@@ -12,6 +12,35 @@ Acknowledge what's about to happen. Ask: "Ready to install the Claude Code Start
 
 Wait for explicit yes.
 
+## Step 0.5 — Write the implementation plan FIRST
+
+Before touching anything on the user's system, **write a plan** and get the user's approval.
+
+**Preferred way: use plan mode.**
+
+If plan mode is available (the `ExitPlanMode` tool is callable, or the session was started with `--permission-mode plan`), draft the plan there. Plan mode forces you to present the full plan before any execution and waits for explicit approval. This is exactly the right shape for installation.
+
+A good install plan summarizes:
+- OS and dependency check results (from Step 1 — run those checks FIRST so the plan reflects reality)
+- Whether a backup of existing `~/.claude/` will happen, and where it will go
+- The workspace location and directory names that will be used (from the interview in Step 4 — defer this question until plan time if you can, so the plan can include the answer)
+- Which files will be copied, where to, and what will be left alone
+- Which credential / personalization questions remain to be answered
+- The exact list of commands you'll run, in order
+
+When the user approves via plan mode, exit plan mode and execute. **Do not improvise outside the plan.** If something unexpected comes up mid-install, stop, update the plan, re-confirm.
+
+**Fallback: if plan mode is not available**, do the same thing in a Markdown file.
+
+1. Create `./INSTALL-PLAN.md` in the current working directory (the cloned Pack folder).
+2. Write the same plan into that file with the structure above.
+3. Show it to the user in the terminal output as well — print the contents (or summarize and tell them the full plan is in `./INSTALL-PLAN.md`).
+4. Wait for explicit approval: "approve", "go", "ano", "OK to proceed", or similar.
+5. Only after explicit approval, start executing.
+6. After the install finishes (Step 11), delete `./INSTALL-PLAN.md` — it was a working artifact, not a deliverable.
+
+Either way: **no destructive action and no copy operation happens before the user has approved a written plan.** The pre-flight check in Step 1 is read-only and can run before the plan; everything else waits.
+
 ## Step 1 — Pre-flight check
 
 Run these checks and report results in a single message:
