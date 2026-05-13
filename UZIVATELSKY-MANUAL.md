@@ -17,7 +17,7 @@ Claude si přečte `INSTRUCTIONS.md` a provede tě celým nastavením otázku po
 1. **Číst plán dřív, než řekneš „ano".** Většina chyb vzniká z odsouhlasení nečteného plánu.
 2. **Když Claude něco nesmí, neobcházej to.** Řekni mu cíl, ne work-around. Navrhne bezpečnější cestu nebo ti dá příkaz k ručnímu spuštění.
 3. **API klíče dej do `~/.claude/.env`.** Claude tam nevidí — pracuje s názvy, ne hodnotami.
-4. **Statusbar dole ti říká, kolik jsi utratil.** Červená = brzdi.
+4. **Statusbar dole ti říká důležité informace o dané session.** Mimo jiné stav kontextového okna a kolik by tě session stála, kdybys platil za tokeny.
 5. **Pro každý nový projekt napiš `/setup`.** Vytvoří složky a šablony.
 
 ## Když něco nejde
