@@ -1,28 +1,16 @@
 # Uživatelský manuál
 
-Pro někoho, jehož zkušenost s AI končí na claude.ai. Přečteš za půl minuty.
+Pack je hotové nastavení pro **Claude Code (CC)** — terminálovou appku od Anthropic, která umí dělat věci na tvém počítači (psát soubory, spouštět příkazy, instalovat prakticky cokoliv). Tento starter pack CC nakonfiguruje tak, aby ti omylem nesmazal disk a nezasahoval do citlivých věcí.
 
-## Co to je
+## Než půjdeš dál
 
-Pack je hotové nastavení pro **Claude Code** — terminálovou appku od Anthropic, která umí dělat věci na tvém počítači (psát soubory, spouštět příkazy, instalovat balíky). Pack ji nakonfiguruje tak, aby ti omylem nesmazala disk a nezasahovala do citlivých věcí.
+**Claude Code není chat.** Na claude.ai napíšeš zprávu, dostaneš odpověď, na disku se nic neděje. V Claude Code napíšeš úkol a Claude reálně edituje soubory, spouští příkazy, instaluje věci. Tento starter pack je pojistka, aby to (ve většině případů) nedopadlo špatně.
 
-## Pochop, než jdeš dál
+## Instalace 
 
-**Claude Code není chat.** Na claude.ai napíšeš zprávu, dostaneš odpověď, na disku se nic neděje. V Claude Code napíšeš úkol a Claude reálně edituje soubory, spouští příkazy, instaluje věci. Když mu řekneš „ukliď tu složku", může to vyhodnotit jako „smaž ji."
+Odkaz na toto repo dej do CC a řekni mu, aby si to načetl a postupoval podle `INSTRUCTIONS.md`.
 
-Pack je pojistka, aby to nedopadlo špatně.
-
-## Instalace (tři řádky)
-
-```
-git clone https://github.com/Gillellbor/claude-starter-pack.git ~/Downloads/pack
-cd ~/Downloads/pack
-claude
-```
-
-Claude si přečte `INSTRUCTIONS.md` a provede tě zbytkem otázku po otázce. **Každý krok schvaluješ ty.** Pokud máš stávající nastavení, Pack ho zálohuje, nepřepisuje.
-
-Na Windows: nainstaluj WSL2, pak to dělej uvnitř něj. Nativní Windows nedoporučuju.
+Claude si přečte `INSTRUCTIONS.md` a provede tě celým nastavením otázku po otázce. **Každý krok schvaluješ ty.** Pokud máš stávající nastavení, CC ho zálohuje, nepřepisuje.
 
 ## Pět věcí, které si zapamatuj
 
